@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS students (student_id TEXT PRIMARY KEY, name TEXT NOT NULL, classroom TEXT, descriptors TEXT NOT NULL, consent_at TEXT NOT NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
