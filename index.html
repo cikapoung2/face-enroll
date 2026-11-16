@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ลงทะเบียนใบหน้านักเรียน</title>
 <style>
-:root{--bg:#f3f6f4;--ink:#17302a;--mut:#5b7168;--pri:#0f766e;--line:#cfdad5;--card:#fff;--err:#b42318}
+:root{--bg:#f3f6f4;--ink:#17302a;--mut:#5b7168;--pri:#0f766e;--line:#cfdad5;--card:#fff;--err:#b42318;--ok:#16a34a}
 *{box-sizing:border-box}
 body{margin:0;font-family:"Noto Sans Thai","Sarabun",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
 main{max-width:520px;margin:0 auto;padding:20px}
@@ -13,18 +13,24 @@ h1{font-size:1.5rem;margin:.4em 0}
 p.s{color:var(--mut);margin:0 0 16px}
 label{display:block;font-weight:600;margin:12px 0 4px}
 input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card)}
-.cam{position:relative;aspect-ratio:4/3;background:#0b1a16;border-radius:12px;overflow:hidden;margin-top:16px}
-video,canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.consent{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:#e6efeb;border-radius:8px;font-size:.92rem;font-weight:400}
+.consent input{margin-top:5px}
+.cam{position:relative;aspect-ratio:3/4;background:#0b1a16;border-radius:14px;overflow:hidden;margin-top:16px}
+video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.ring{position:absolute;left:12%;right:12%;top:12%;aspect-ratio:1;border:5px solid #fff;border-radius:50%;box-shadow:0 0 0 999px rgba(0,0,0,.4);transition:border-color .2s}
+.ring.ok{border-color:var(--ok)}
+.cue{position:absolute;left:0;right:0;bottom:0;padding:14px;text-align:center;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.7))}
+#arrow{font-size:2.4rem;line-height:1}
+#step{font-size:1.25rem;font-weight:700}
+#hint{font-size:.9rem;opacity:.9;min-height:1.4em}
+#dots{display:flex;gap:6px;margin-top:10px}
+#dots i{flex:1;height:8px;border-radius:4px;background:var(--line)}
+#dots i.on{background:var(--ok)}
 button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:8px;background:var(--pri);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
 button:focus-visible,input:focus-visible{outline:3px solid #7dd3c8;outline-offset:2px}
-.consent{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;background:#e6efeb;border-radius:8px;font-size:.92rem}
-.consent input{margin-top:5px}
 #msg{margin-top:12px;min-height:1.6em}
-.err{color:var(--err)}.ok{color:var(--pri);font-weight:600}
-#dots{display:flex;gap:6px;margin-top:10px}
-#dots i{flex:1;height:6px;border-radius:3px;background:var(--line)}
-#dots i.on{background:var(--pri)}
+.err{color:var(--err)}.okc{color:var(--pri);font-weight:600}
 </style>
 </head>
 <body>
@@ -42,7 +48,11 @@ button:focus-visible,input:focus-visible{outline:3px solid #7dd3c8;outline-offse
   <label class="consent"><input id="ok" type="checkbox">
     <span>ข้าพเจ้า (หรือผู้ปกครองกรณีอายุต่ำกว่า 20 ปี) ยินยอมให้โรงเรียนเก็บข้อมูลใบหน้าเพื่อใช้เช็คชื่อเท่านั้น และขอลบข้อมูลได้ทุกเมื่อ</span></label>
 
-  <div class="cam"><video id="v" autoplay playsinline muted></video><canvas id="c"></canvas></div>
+  <div class="cam">
+    <video id="v" autoplay playsinline muted></video>
+    <div class="ring" id="ring"></div>
+    <div class="cue"><div id="arrow"></div><div id="step"></div><div id="hint"></div></div>
+  </div>
   <div id="dots"><i></i><i></i><i></i></div>
   <button id="go" disabled>กำลังโหลดโมเดล…</button>
   <div id="msg" role="status"></div>
@@ -51,38 +61,83 @@ button:focus-visible,input:focus-visible{outline:3px solid #7dd3c8;outline-offse
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
 <script>
 const MODELS='https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/';
-const $=id=>document.getElementById(id), msg=(t,c)=>{$('msg').textContent=t;$('msg').className=c||''};
-const SHOTS=3, got=[];
+const $=id=>document.getElementById(id);
+const msg=(t,c)=>{$('msg').textContent=t;$('msg').className=c||''};
+// r = ตำแหน่งปลายจมูกระหว่างขอบหน้าซ้าย-ขวา (0.5 = มองตรง) ปรับเกณฑ์ได้ตรงนี้
+const STEPS=[
+  {t:'มองตรงไปที่กล้อง',a:'●',ok:r=>r>.42&&r<.58},
+  {t:'หันหน้าไปทางซ้าย',a:'←',ok:r=>r>.64},
+  {t:'หันหน้าไปทางขวา',a:'→',ok:r=>r<.36}
+];
+const OPT=()=>new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5});
+let got=[],step=0,hold=0,running=false;
+
 (async()=>{
   try{
     await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODELS),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODELS),
       faceapi.nets.faceRecognitionNet.loadFromUri(MODELS)]);
     $('v').srcObject=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
-    $('go').disabled=false;$('go').textContent='ถ่ายภาพ (0/'+SHOTS+')';
+    $('go').disabled=false;$('go').textContent='เริ่มสแกนใบหน้า';
+    cue('พร้อมแล้ว','○','กรอกข้อมูลแล้วกดเริ่มสแกน');
   }catch(e){msg('เปิดกล้องหรือโหลดโมเดลไม่สำเร็จ: '+e.message,'err')}
 })();
 
-$('go').onclick=async()=>{
-  const id=$('sid').value.trim(), name=$('nm').value.trim();
-  if(!id||!name) return msg('กรอกรหัสและชื่อก่อน','err');
+function cue(t,a,h){$('step').textContent=t;$('arrow').textContent=a;$('hint').textContent=h||''}
+function dots(){document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i<got.length))}
+
+$('go').onclick=()=>{
+  if(!$('sid').value.trim()||!$('nm').value.trim()) return msg('กรอกรหัสและชื่อก่อน','err');
   if(!$('ok').checked) return msg('ติ๊กยินยอมก่อนเริ่มสแกน','err');
-  $('go').disabled=true; msg('กำลังตรวจจับใบหน้า…');
-  const r=await faceapi.detectSingleFace($('v'),new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-  if(!r){$('go').disabled=false;return msg('ไม่พบใบหน้า ลองขยับให้ตรงกล้องและมีแสงพอ','err')}
-  got.push(Array.from(r.descriptor));
-  document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i<got.length));
-  if(got.length<SHOTS){
-    $('go').disabled=false;$('go').textContent=`ถ่ายภาพ (${got.length}/${SHOTS})`;
-    return msg('ดี! หันหน้าเล็กน้อยแล้วถ่ายอีกครั้ง','ok');
-  }
-  $('go').textContent='กำลังบันทึก…';
-  const res=await fetch('/api/enroll',{method:'POST',headers:{'content-type':'application/json'},
-    body:JSON.stringify({studentId:id,name,classroom:$('cl').value.trim(),descriptors:got,consent:true})});
-  const d=await res.json();
-  if(d.ok){msg('บันทึกเรียบร้อย ขอบคุณ','ok');$('go').textContent='เสร็จสิ้น'}
-  else{msg(d.error||'บันทึกไม่สำเร็จ','err');got.length=0;$('go').disabled=false;$('go').textContent='ถ่ายใหม่'}
+  got=[];step=0;hold=0;running=true;dots();msg('');
+  $('go').disabled=true;$('go').textContent='กำลังสแกน…';
+  show();tick();
 };
+function show(){cue(STEPS[step].t,STEPS[step].a,'เคลื่อนไหวต่อไปจนกว่าวงกลมจะเป็นสีเขียว')}
+
+async function tick(){
+  if(!running) return;
+  const v=$('v');
+  try{
+    const f=await faceapi.detectAllFaces(v,OPT()).withFaceLandmarks();
+    let good=false;
+    if(f.length!==1){hold=0;$('hint').textContent=f.length?'พบหลายใบหน้า ให้เหลือคนเดียว':'ไม่พบใบหน้า ลองให้แสงพอและไม่สวมหมวก/แว่นกันแดด'}
+    else if(f[0].detection.box.width/v.videoWidth<.2){hold=0;$('hint').textContent='เข้าใกล้กล้องอีกนิด'}
+    else{
+      const p=f[0].landmarks.positions, r=(p[30].x-p[0].x)/(p[16].x-p[0].x);
+      good=STEPS[step].ok(r);
+      hold=good?hold+1:0;
+      if(!good) $('hint').textContent=step===0?'หันหน้าตรงกล้อง':'หันต่อไปอีกนิด';
+    }
+    $('ring').classList.toggle('ok',good);
+    if(hold>=3){
+      const d=await faceapi.detectSingleFace(v,OPT()).withFaceLandmarks().withFaceDescriptor();
+      if(d){
+        got.push(Array.from(d.descriptor));step++;hold=0;dots();
+        if(step>=STEPS.length){running=false;return send()}
+        cue('สำเร็จ','✓','รอสักครู่…');
+        await new Promise(r=>setTimeout(r,900));show();
+      }
+    }
+  }catch(e){msg('เกิดข้อผิดพลาด: '+e.message,'err')}
+  setTimeout(tick,120);
+}
+
+async function send(){
+  cue('กำลังบันทึก…','…','');$('ring').classList.remove('ok');
+  try{
+    const res=await fetch('/api/enroll',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({studentId:$('sid').value.trim(),name:$('nm').value.trim(),
+        classroom:$('cl').value.trim(),descriptors:got,consent:true})});
+    const d=await res.json();
+    if(!d.ok) throw new Error(d.error||'บันทึกไม่สำเร็จ');
+    cue('เสร็จสิ้น','✓','บันทึกเรียบร้อย ขอบคุณ');msg('บันทึกเรียบร้อย','okc');
+    $('go').textContent='เสร็จสิ้น';
+  }catch(e){
+    msg(e.message,'err');cue('ไม่สำเร็จ','✕','กดเพื่อสแกนใหม่');
+    $('go').disabled=false;$('go').textContent='สแกนใหม่';
+  }
+}
 </script>
 </body>
 </html>
