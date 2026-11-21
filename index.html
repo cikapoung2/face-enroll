@@ -3,131 +3,107 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b5ed7">
+<meta name="theme-color" content="#f5f5f5">
 <title>ลงทะเบียนใบหน้านักเรียน</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f6fb;--card:#fff;--ink:#1b2437;--mut:#64708a;--line:#dde3ee;--pri:#0b5ed7;--pri-d:#094bb0;--pri-l:#e7f0fe;--ok:#16a34a;--ok-l:#e8f7ee;--err:#d92d20;--err-l:#fdeceb;--r:14px}
+:root{--bg:#f5f5f5;--ink:#242424;--mut:#616161;--line:#d1d1d1;--br:#0f6cbd;--br-h:#115ea3;--br-l:#ebf3fc;--ok:#107c10;--err:#b10e1c}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;min-height:100vh;font-family:"Noto Sans Thai","Sarabun","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
-header{background:linear-gradient(135deg,#0b5ed7,#0a3f9b);color:#fff;padding:22px 20px 70px}
-.wrap{max-width:480px;margin:0 auto}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.18);display:grid;place-items:center}
-.brand h1{font-size:1.15rem;margin:0;font-weight:700;line-height:1.3}
-.brand p{margin:0;font-size:.85rem;opacity:.85}
-main{max-width:480px;margin:-48px auto 32px;padding:0 16px}
-.card{background:var(--card);border-radius:var(--r);box-shadow:0 8px 30px rgba(20,40,90,.12);padding:22px}
-.stepper{display:flex;align-items:center;margin-bottom:22px}
-.st{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;font-size:.78rem;color:var(--mut)}
-.st b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--line);color:var(--mut);font-size:.9rem;transition:.2s}
-.st.on b{background:var(--pri);color:#fff}.st.on{color:var(--ink);font-weight:500}
-.st.done b{background:var(--ok);color:#fff}
-.bar{flex:1;height:2px;background:var(--line);margin:0 8px 18px}
-.bar.done{background:var(--ok)}
-h2{font-size:1.25rem;margin:0 0 4px}
-.sub{color:var(--mut);margin:0 0 18px;font-size:.93rem}
+body{margin:0;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Segoe UI","Noto Sans Thai",system-ui,sans-serif}
+.card{width:100%;max-width:440px;background:#fff;border-radius:8px;padding:32px 28px 24px;box-shadow:0 2px 4px rgba(0,0,0,.14),0 0 2px rgba(0,0,0,.12)}
+@media(max-width:480px){body{padding:0;background:#fff}.card{box-shadow:none;padding:24px 20px}}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;font-weight:600;color:var(--mut)}
+.brand i{width:28px;height:28px;border-radius:6px;background:var(--br);display:grid;place-items:center}
+.seg{display:flex;gap:4px;margin:0 0 6px}.seg b{flex:1;height:4px;border-radius:2px;background:#e0e0e0}.seg b.on{background:var(--br)}
+.stp{font-size:12px;color:var(--mut);margin-bottom:14px}
+h1{font-size:24px;line-height:1.3;font-weight:600;margin:0 0 6px}
+.sub{color:var(--mut);margin:0 0 20px}
 .f{margin-bottom:14px}
-label.l{display:block;font-weight:500;margin-bottom:5px;font-size:.93rem}
-input[type=text]{width:100%;height:48px;padding:0 14px;border:1.5px solid var(--line);border-radius:10px;font:inherit;font-size:1rem;background:#fff;color:var(--ink);transition:.15s}
-input[type=text]:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 4px var(--pri-l)}
+label.l{display:block;font-weight:600;margin-bottom:4px;font-size:14px}
+input[type=text]{width:100%;height:40px;padding:0 10px;border:1px solid var(--line);border-bottom-color:#616161;border-radius:4px;font:inherit;background:#fff;color:var(--ink)}
+input[type=text]:hover{background:#fafafa}
+input[type=text]:focus{outline:none;box-shadow:inset 0 -2px 0 var(--br);border-bottom-color:var(--br)}
 input.bad{border-color:var(--err)}
-.e{color:var(--err);font-size:.82rem;min-height:1.2em;margin-top:3px}
-.consent{display:flex;gap:12px;padding:14px;background:var(--pri-l);border-radius:10px;font-size:.88rem;cursor:pointer;align-items:flex-start}
-.consent input{width:20px;height:20px;margin-top:3px;accent-color:var(--pri);flex:none}
-.btn{width:100%;height:52px;border:0;border-radius:12px;background:var(--pri);color:#fff;font:inherit;font-size:1.02rem;font-weight:700;cursor:pointer;margin-top:16px;transition:.15s}
-.btn:hover{background:var(--pri-d)}
-.btn:focus-visible{outline:3px solid #9cc2fb;outline-offset:2px}
-.btn:disabled{opacity:.55;cursor:not-allowed}
-.btn.ghost{background:transparent;color:var(--mut);height:44px;margin-top:6px;font-weight:500}
-.btn.ghost:hover{background:var(--bg)}
-.screen{display:none}.screen.on{display:block;animation:in .25s ease}
-@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.stage{position:relative;width:min(100%,320px);aspect-ratio:1;margin:6px auto 14px}
-.stage video{position:absolute;inset:7%;width:86%;height:86%;border-radius:50%;object-fit:cover;transform:scaleX(-1);background:#0b1220}
+.e{color:var(--err);font-size:12px;min-height:16px;margin-top:3px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin-top:6px;cursor:pointer}
+.chk input{width:18px;height:18px;margin-top:2px;accent-color:var(--br);flex:none}
+.row{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
+.btn{min-width:108px;height:36px;padding:0 20px;border-radius:4px;border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{background:#f5f5f5}
+.btn.p{background:var(--br);border-color:var(--br);color:#fff}.btn.p:hover{background:var(--br-h)}
+.btn:focus-visible{outline:2px solid #000;outline-offset:2px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:480px){.btn{flex:1}}
+.screen{display:none}.screen.on{display:block}
+.bar{display:flex;gap:10px;padding:10px 12px;border-radius:4px;font-size:13px;margin-bottom:14px;border:1px solid}
+.bar.warn{background:#fff9f5;border-color:#f4bfab;color:#5c2e1a}
+.bar.err{background:#fdf3f4;border-color:#eeacb2;color:#6e0811}
+.stage{position:relative;width:min(100%,300px);aspect-ratio:1;margin:4px auto 12px}
+.stage video{position:absolute;inset:7%;width:86%;height:86%;border-radius:50%;object-fit:cover;transform:scaleX(-1);background:#1f1f1f}
 .stage svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
-.stage circle{fill:none;stroke-width:3.2}
-.trk{stroke:var(--line)}.prg{stroke:var(--pri);stroke-linecap:round;stroke-dasharray:301.6;stroke-dashoffset:301.6;transition:stroke-dashoffset .2s}
+.stage circle{fill:none;stroke-width:3}
+.trk{stroke:#e0e0e0}.prg{stroke:var(--br);stroke-linecap:round;stroke-dasharray:301.6;stroke-dashoffset:301.6;transition:stroke-dashoffset .2s}
 .prg.ok{stroke:var(--ok)}
-.load{position:absolute;inset:7%;border-radius:50%;background:rgba(11,18,32,.82);color:#fff;display:grid;place-items:center;text-align:center;font-size:.9rem;padding:20px}
-.cue{text-align:center;min-height:86px}
-.cue .a{font-size:2rem;line-height:1.1;color:var(--pri)}
-.cue .t{font-size:1.25rem;font-weight:700}
-.cue .h{font-size:.88rem;color:var(--mut);min-height:1.4em}
-.chips{display:flex;gap:8px;justify-content:center;margin-top:10px}
-.chip{flex:1;text-align:center;padding:8px 4px;border-radius:10px;border:1.5px solid var(--line);font-size:.82rem;color:var(--mut)}
-.chip.active{border-color:var(--pri);color:var(--pri);background:var(--pri-l);font-weight:500}
-.chip.done{border-color:var(--ok);color:var(--ok);background:var(--ok-l)}
-.tips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:0 0 4px;font-size:.78rem;color:var(--mut)}
-.tips span{background:var(--bg);padding:3px 10px;border-radius:99px}
-.alert{background:var(--err-l);color:#912018;border-radius:10px;padding:12px 14px;font-size:.9rem;margin-top:12px}
-.success{text-align:center;padding:10px 0}
-.tick{width:84px;height:84px;border-radius:50%;background:var(--ok-l);display:grid;place-items:center;margin:0 auto 14px}
-.tick svg{width:44px;height:44px;stroke:var(--ok);stroke-width:3.5;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .5s .15s forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
-.who{background:var(--bg);border-radius:10px;padding:12px;margin:14px 0 0;font-size:.95rem}
-.who b{display:block;font-size:1.05rem}
-.foot{text-align:center;color:var(--mut);font-size:.78rem;margin-top:16px}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.load{position:absolute;inset:7%;border-radius:50%;background:rgba(31,31,31,.88);color:#fff;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;font-size:13px;padding:24px}
+.spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.cue{text-align:center;min-height:78px}
+.cue .a{font-size:26px;line-height:1.1;color:var(--br)}.cue .t{font-size:18px;font-weight:600}.cue .h{font-size:13px;color:var(--mut);min-height:20px}
+.chips{display:flex;gap:6px;margin-top:6px}
+.chip{flex:1;text-align:center;padding:5px 2px;border-radius:4px;border:1px solid var(--line);font-size:12px;color:var(--mut)}
+.chip.active{border-color:var(--br);color:var(--br);background:var(--br-l);font-weight:600}
+.chip.done{border-color:var(--ok);color:var(--ok);background:#f1faf1}
+.tips{font-size:12px;color:var(--mut);text-align:center}
+.ok-c{width:64px;height:64px;border-radius:50%;background:var(--ok);display:grid;place-items:center;margin:4px 0 14px}
+.who{border:1px solid var(--line);border-radius:4px;padding:10px 12px;margin-top:14px}.who b{display:block}
+.foot{font-size:12px;color:var(--mut);margin-top:22px;padding-top:14px;border-top:1px solid #ebebeb}
+@media(prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
 </style>
 </head>
 <body>
-<header><div class="wrap brand">
-  <div class="logo" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18c.8-2.3 2.8-3.5 5.5-3.5s4.7 1.2 5.5 3.5"/></svg></div>
-  <div><h1>ลงทะเบียนใบหน้านักเรียน</h1><p>ระบบเช็คชื่อด้วยใบหน้า</p></div>
-</div></header>
-
-<main><div class="card">
-  <div class="stepper" aria-label="ขั้นตอน">
-    <div class="st on" id="s1"><b>1</b>ข้อมูล</div><div class="bar" id="b1"></div>
-    <div class="st" id="s2"><b>2</b>สแกนใบหน้า</div><div class="bar" id="b2"></div>
-    <div class="st" id="s3"><b>3</b>เสร็จสิ้น</div>
-  </div>
+<div class="card">
+  <div class="brand"><i aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="10" r="2.5"/></svg></i>ระบบเช็คชื่อด้วยใบหน้า</div>
+  <div class="seg" aria-hidden="true"><b class="on"></b><b></b><b></b></div>
+  <div class="stp" id="stp">ขั้นตอนที่ 1 จาก 3</div>
 
   <section class="screen on" id="p1">
-    <h2>ข้อมูลนักเรียน</h2>
-    <p class="sub">กรอกข้อมูลให้ครบ แล้วไปขั้นตอนสแกนใบหน้า</p>
-    <div class="f"><label class="l" for="sid">รหัสนักเรียน</label>
-      <input id="sid" type="text" inputmode="text" autocomplete="off" maxlength="20" placeholder="เช่น 12345"><div class="e" id="e-sid"></div></div>
-    <div class="f"><label class="l" for="nm">ชื่อ-นามสกุล</label>
-      <input id="nm" type="text" autocomplete="off" maxlength="100" placeholder="เช่น สมชาย ใจดี"><div class="e" id="e-nm"></div></div>
-    <div class="f"><label class="l" for="cl">ห้องเรียน</label>
-      <input id="cl" type="text" autocomplete="off" maxlength="20" placeholder="เช่น ม.3/2"></div>
-    <label class="consent"><input id="ok" type="checkbox"><span>ข้าพเจ้า (หรือผู้ปกครองกรณีอายุต่ำกว่า 20 ปี) ยินยอมให้โรงเรียนเก็บข้อมูลใบหน้าเพื่อใช้เช็คชื่อเท่านั้น และขอลบข้อมูลได้ทุกเมื่อ</span></label>
+    <h1>ลงทะเบียนนักเรียน</h1>
+    <p class="sub">กรอกข้อมูลของคุณ แล้วไปสแกนใบหน้า</p>
+    <div class="bar warn" id="inapp" hidden>⚠ ตรวจพบว่าเปิดในแอป LINE/Facebook ซึ่งมักเปิดกล้องไม่ได้ กรุณากดเมนู ⋮ หรือ ⋯ แล้วเลือก “เปิดใน Chrome/Safari”</div>
+    <div class="f"><label class="l" for="sid">รหัสนักเรียน</label><input id="sid" type="text" autocomplete="off" maxlength="20" placeholder="เช่น 12345"><div class="e" id="e-sid"></div></div>
+    <div class="f"><label class="l" for="nm">ชื่อ-นามสกุล</label><input id="nm" type="text" autocomplete="off" maxlength="100" placeholder="เช่น สมชาย ใจดี"><div class="e" id="e-nm"></div></div>
+    <div class="f"><label class="l" for="cl">ห้องเรียน</label><input id="cl" type="text" autocomplete="off" maxlength="20" placeholder="เช่น ม.3/2"></div>
+    <label class="chk"><input id="ok" type="checkbox"><span>ข้าพเจ้า (หรือผู้ปกครองกรณีอายุต่ำกว่า 20 ปี) ยินยอมให้โรงเรียนเก็บข้อมูลใบหน้าเพื่อใช้เช็คชื่อเท่านั้น และขอลบข้อมูลได้ทุกเมื่อ</span></label>
     <div class="e" id="e-ok"></div>
-    <button class="btn" id="next">ถัดไป: สแกนใบหน้า</button>
+    <div class="row"><button class="btn p" id="next">ถัดไป</button></div>
   </section>
 
   <section class="screen" id="p2">
-    <h2>สแกนใบหน้า</h2>
-    <p class="sub">ทำตามคำแนะนำบนหน้าจอ ระบบจะถ่ายให้อัตโนมัติ</p>
-    <div class="tips"><span>แสงสว่างพอ</span><span>ไม่สวมหมวก</span><span>ถอดแว่นกันแดด</span><span>มีเพียงคนเดียว</span></div>
+    <h1>สแกนใบหน้า</h1>
+    <p class="sub">ทำตามคำแนะนำ ระบบจะถ่ายให้อัตโนมัติ</p>
     <div class="stage">
       <video id="v" autoplay playsinline muted></video>
       <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="48"/><circle class="prg" id="prg" cx="50" cy="50" r="48"/></svg>
-      <div class="load" id="load">กำลังเตรียมกล้อง…</div>
+      <div class="load" id="load"><div class="spin"></div><span id="ltxt"></span></div>
     </div>
     <div class="cue" aria-live="polite"><div class="a" id="arrow"></div><div class="t" id="step"></div><div class="h" id="hint"></div></div>
     <div class="chips"><div class="chip">มองตรง</div><div class="chip">หันซ้าย</div><div class="chip">หันขวา</div></div>
-    <div class="alert" id="err" hidden></div>
-    <button class="btn" id="retry" hidden>สแกนใหม่</button>
-    <button class="btn ghost" id="back">ย้อนกลับ</button>
+    <p class="tips">แสงสว่างพอ • ไม่สวมหมวก • ถอดแว่นกันแดด • อยู่คนเดียวในภาพ</p>
+    <div class="bar err" id="err" hidden></div>
+    <div class="row"><button class="btn" id="back">ย้อนกลับ</button><button class="btn p" id="retry" hidden>ลองอีกครั้ง</button></div>
   </section>
 
   <section class="screen" id="p3">
-    <div class="success">
-      <div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-      <h2>ลงทะเบียนสำเร็จ</h2>
-      <p class="sub">บันทึกข้อมูลใบหน้าเรียบร้อยแล้ว</p>
-      <div class="who"><b id="w-nm"></b><span id="w-id"></span></div>
-    </div>
-    <button class="btn" id="again">ลงทะเบียนคนถัดไป</button>
+    <div class="ok-c"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h1>ลงทะเบียนสำเร็จ</h1>
+    <p class="sub">บันทึกข้อมูลใบหน้าเรียบร้อยแล้ว</p>
+    <div class="who"><b id="w-nm"></b><span id="w-id"></span></div>
+    <div class="row"><button class="btn p" id="again">ลงทะเบียนคนถัดไป</button></div>
   </section>
+  <div class="foot">ระบบเก็บเฉพาะค่าตัวเลขของใบหน้า ไม่เก็บภาพถ่าย</div>
 </div>
-<p class="foot">ระบบเก็บเฉพาะค่าตัวเลขของใบหน้า ไม่เก็บภาพถ่าย</p></main>
 
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
 <script>
@@ -140,28 +116,31 @@ const STEPS=[
   {t:'หันหน้าไปทางขวา',a:'→',ok:r=>r<.36}
 ];
 const OPT=()=>new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5});
-let got=[],step=0,hold=0,running=false,stream=null,modelsReady=null;
+let got=[],step=0,hold=0,running=false,stream=null,mp=null;
+
+if(/Line\/|FBAN|FBAV|Instagram|MicroMessenger|; wv\)/i.test(navigator.userAgent)) $('inapp').hidden=false;
 
 function loadModels(){
-  return modelsReady||(modelsReady=Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODELS),
-    faceapi.nets.faceLandmark68Net.loadFromUri(MODELS),faceapi.nets.faceRecognitionNet.loadFromUri(MODELS)]));
+  if(!mp) mp=Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODELS),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODELS),faceapi.nets.faceRecognitionNet.loadFromUri(MODELS)]).catch(e=>{mp=null;throw e});
+  return mp;
 }
 loadModels().catch(()=>{});
+const timeout=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
 
 function go(n){
   document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('on',i===n-1));
-  [1,2,3].forEach(i=>{const s=$('s'+i);s.className='st'+(i===n?' on':i<n?' done':'');s.firstChild.textContent=i<n?'✓':i});
-  $('b1').classList.toggle('done',n>1);$('b2').classList.toggle('done',n>2);
-  scrollTo({top:0,behavior:'smooth'});
+  document.querySelectorAll('.seg b').forEach((b,i)=>b.classList.toggle('on',i<n));
+  $('stp').textContent='ขั้นตอนที่ '+n+' จาก 3';scrollTo(0,0);
 }
-function fieldErr(id,m){$('e-'+id).textContent=m||'';const i=$(id);if(i&&i.type==='text')i.classList.toggle('bad',!!m)}
+function fieldErr(id,m){$('e-'+id).textContent=m||'';const i=$(id);if(i.type==='text')i.classList.toggle('bad',!!m)}
 
 $('next').onclick=()=>{
   const id=$('sid').value.trim(),nm=$('nm').value.trim();let bad=false;
-  fieldErr('sid',/^[A-Za-z0-9-]{3,20}$/.test(id)?'':(bad=true,'รหัสนักเรียน 3-20 ตัว (ตัวอักษร/ตัวเลข/-)'));
+  fieldErr('sid',/^[A-Za-z0-9-]{3,20}$/.test(id)?'':(bad=true,'รหัสนักเรียนต้องเป็นตัวอักษร/ตัวเลข/- ความยาว 3-20 ตัว'));
   fieldErr('nm',nm?'':(bad=true,'กรุณากรอกชื่อ-นามสกุล'));
   fieldErr('ok',$('ok').checked?'':(bad=true,'กรุณาติ๊กยินยอมก่อนดำเนินการต่อ'));
-  if(!bad){go(2);startScan()}
+  if(!bad){go(2);startScan()}   // เรียกกล้องทันทีจากการกดปุ่ม เพื่อให้เบราว์เซอร์ยอมให้ขอสิทธิ์
 };
 ['sid','nm'].forEach(i=>$(i).addEventListener('input',()=>fieldErr(i,'')));
 $('ok').onchange=()=>fieldErr('ok','');
@@ -176,19 +155,28 @@ function paint(good){
   $('prg').style.strokeDashoffset=301.6*(1-Math.min(1,(got.length+(good?hold/3:0))/3));
   $('prg').classList.toggle('ok',!!good||got.length===3);
 }
-function showErr(m){$('err').textContent=m;$('err').hidden=false;$('retry').hidden=false}
+function load(t){$('load').style.display=t?'flex':'none';if(t)$('ltxt').textContent=t}
+function fail(m){load('');$('err').textContent=m;$('err').hidden=false;$('retry').hidden=false}
 
 async function startScan(){
-  got=[];step=0;hold=0;$('err').hidden=true;$('retry').hidden=true;
-  $('load').style.display='grid';$('load').textContent='กำลังเตรียมกล้อง…';paint();cue('','','');
+  got=[];step=0;hold=0;running=false;$('err').hidden=true;$('retry').hidden=true;cue('','','');paint();
+  if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)
+    return fail('เบราว์เซอร์นี้เปิดกล้องไม่ได้ (ต้องเป็นลิงก์ https และไม่ใช่เบราว์เซอร์ในแอป LINE/Facebook) กรุณาเปิดลิงก์ด้วย Chrome หรือ Safari');
   try{
-    await loadModels();
-    if(!stream){stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640}}});$('v').srcObject=stream;await $('v').play()}
+    if(!stream){
+      load('กำลังขออนุญาตใช้กล้อง…\nกด “อนุญาต” เมื่อมีข้อความถาม');
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+      $('v').srcObject=stream;await $('v').play();
+    }
   }catch(e){
-    $('load').style.display='none';
-    return showErr(e.name==='NotAllowedError'?'ไม่ได้รับอนุญาตให้ใช้กล้อง กรุณากดอนุญาตที่แถบที่อยู่เว็บ แล้วกดสแกนใหม่':'เปิดกล้องหรือโหลดระบบไม่สำเร็จ: '+e.message);
+    stream=null;
+    const m={NotAllowedError:'ไม่ได้รับอนุญาตให้ใช้กล้อง กดไอคอนกุญแจ/กล้องข้างช่องที่อยู่เว็บ แล้วเลือก “อนุญาต” จากนั้นกดลองอีกครั้ง',
+      NotFoundError:'ไม่พบกล้องในอุปกรณ์นี้',NotReadableError:'กล้องกำลังถูกใช้โดยโปรแกรมอื่น (เช่น Zoom/Teams) ปิดโปรแกรมนั้นแล้วลองอีกครั้ง'}[e.name];
+    return fail(m||'เปิดกล้องไม่สำเร็จ: '+(e.name||e.message));
   }
-  $('load').style.display='none';running=true;show();tick();
+  try{load('กำลังโหลดระบบตรวจจับใบหน้า…');await timeout(loadModels(),40000)}
+  catch(e){return fail('โหลดระบบตรวจจับใบหน้าไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วกดลองอีกครั้ง')}
+  load('');running=true;show();tick();
 }
 function show(){cue(STEPS[step].t,STEPS[step].a,'เคลื่อนไหวต่อไปจนวงกลมเป็นสีเขียว');paint()}
 
@@ -214,20 +202,20 @@ async function tick(){
         await new Promise(r=>setTimeout(r,800));if(running)show();
       }
     }
-  }catch(e){running=false;return showErr('เกิดข้อผิดพลาด: '+e.message)}
+  }catch(e){running=false;return fail('เกิดข้อผิดพลาด: '+e.message)}
   setTimeout(tick,120);
 }
 
 async function send(){
   cue('กำลังบันทึก…','…','');
-  const id=$('sid').value.trim(),nm=$('nm').value.trim();
+  const id=$('sid').value.trim(),nm=$('nm').value.trim(),cl=$('cl').value.trim();
   try{
     const res=await fetch('/api/enroll',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({studentId:id,name:nm,classroom:$('cl').value.trim(),descriptors:got,consent:true})});
+      body:JSON.stringify({studentId:id,name:nm,classroom:cl,descriptors:got,consent:true})});
     const d=await res.json().catch(()=>({}));
-    if(!res.ok||!d.ok) throw new Error(d.error||'บันทึกไม่สำเร็จ');
-    stop();$('w-nm').textContent=nm;$('w-id').textContent='รหัส '+id+($('cl').value.trim()?' • ห้อง '+$('cl').value.trim():'');go(3);
-  }catch(e){cue('ไม่สำเร็จ','✕','');showErr(e.message)}
+    if(!res.ok||!d.ok) throw new Error(d.error||'บันทึกไม่สำเร็จ (ตรวจว่าผูกฐานข้อมูล D1 ชื่อ DB แล้ว)');
+    stop();$('w-nm').textContent=nm;$('w-id').textContent='รหัส '+id+(cl?' • ห้อง '+cl:'');go(3);
+  }catch(e){cue('ไม่สำเร็จ','✕','');fail(e.message)}
 }
 </script>
 </body>
