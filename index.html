@@ -39,6 +39,7 @@ input.bad{border-color:var(--err)}
 .screen{display:none}.screen.on{display:block}
 .bar{display:flex;gap:10px;padding:10px 12px;border-radius:4px;font-size:13px;margin-bottom:14px;border:1px solid}
 .bar.warn{background:#fff9f5;border-color:#f4bfab;color:#5c2e1a}
+.bar.ok{background:#f1faf1;border-color:#9fd89f;color:#0e700e}
 .bar.err{background:#fdf3f4;border-color:#eeacb2;color:#6e0811}
 .stage{position:relative;width:min(100%,300px);aspect-ratio:1;margin:4px auto 12px}
 .stage video{position:absolute;inset:7%;width:86%;height:86%;border-radius:50%;object-fit:cover;transform:scaleX(-1);background:#1f1f1f}
@@ -71,6 +72,7 @@ input.bad{border-color:var(--err)}
   <section class="screen on" id="p1">
     <h1>ลงทะเบียนนักเรียน</h1>
     <p class="sub">กรอกข้อมูลของคุณ แล้วไปสแกนใบหน้า</p>
+    <div class="bar" id="camst" hidden></div>
     <div class="bar warn" id="inapp" hidden>⚠ ตรวจพบว่าเปิดในแอป LINE/Facebook ซึ่งมักเปิดกล้องไม่ได้ กรุณากดเมนู ⋮ หรือ ⋯ แล้วเลือก “เปิดใน Chrome/Safari”</div>
     <div class="f"><label class="l" for="sid">รหัสนักเรียน</label><input id="sid" type="text" autocomplete="off" maxlength="20" placeholder="เช่น 12345"><div class="e" id="e-sid"></div></div>
     <div class="f"><label class="l" for="nm">ชื่อ-นามสกุล</label><input id="nm" type="text" autocomplete="off" maxlength="100" placeholder="เช่น สมชาย ใจดี"><div class="e" id="e-nm"></div></div>
@@ -102,7 +104,7 @@ input.bad{border-color:var(--err)}
     <div class="who"><b id="w-nm"></b><span id="w-id"></span></div>
     <div class="row"><button class="btn p" id="again">ลงทะเบียนคนถัดไป</button></div>
   </section>
-  <div class="foot">ระบบเก็บเฉพาะค่าตัวเลขของใบหน้า ไม่เก็บภาพถ่าย • เวอร์ชัน 3</div>
+  <div class="foot">ระบบเก็บเฉพาะค่าตัวเลขของใบหน้า ไม่เก็บภาพถ่าย • เวอร์ชัน 4</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
@@ -121,6 +123,10 @@ let got=[],step=0,hold=0,running=false,stream=null,mp=null;
 
 if(/Line\/|FBAN|FBAV|Instagram|MicroMessenger|; wv\)/i.test(navigator.userAgent)) $('inapp').hidden=false;
 
+function setCam(c){const b=$('camst');b.hidden=false;
+  if(c==='ok'){b.className='bar ok';b.textContent='✓ กล้องพร้อมใช้งานแล้ว'}
+  else if(c==='NotAllowedError'){b.className='bar warn';b.textContent='⚠ ยังไม่ได้อนุญาตกล้อง กดไอคอนกุญแจข้างช่องที่อยู่เว็บ เลือก “อนุญาต” แล้วรีเฟรชหน้านี้'}
+  else b.hidden=true}
 function loadModels(){
   if(!mp) mp=(async()=>{
     if(typeof faceapi==='undefined') throw new Error('nolib');
@@ -167,11 +173,11 @@ async function startScan(){
   if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)
     return fail('เบราว์เซอร์นี้เปิดกล้องไม่ได้ (ต้องเป็นลิงก์ https และไม่ใช่เบราว์เซอร์ในแอป LINE/Facebook) กรุณาเปิดลิงก์ด้วย Chrome หรือ Safari');
   try{
-    if(!stream){
-      load('กำลังขออนุญาตใช้กล้อง…\nกด “อนุญาต” เมื่อมีข้อความถาม');
+    if(!stream||!stream.active){
+      load('กำลังขออนุญาตใช้กล้อง… กด “อนุญาต” เมื่อมีข้อความถาม');
       stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
-      $('v').srcObject=stream;await $('v').play();
     }
+    $('v').srcObject=stream;await $('v').play();setCam('ok');
   }catch(e){
     stream=null;
     const m={NotAllowedError:'ไม่ได้รับอนุญาตให้ใช้กล้อง กดไอคอนกุญแจ/กล้องข้างช่องที่อยู่เว็บ แล้วเลือก “อนุญาต” จากนั้นกดลองอีกครั้ง',
@@ -221,6 +227,9 @@ async function send(){
     stop();$('w-nm').textContent=nm;$('w-id').textContent='รหัส '+id+(cl?' • ห้อง '+cl:'');go(3);
   }catch(e){cue('ไม่สำเร็จ','✕','');fail(e.message)}
 }
+if(window.isSecureContext&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false})
+    .then(t=>{t.getTracks().forEach(x=>x.stop());setCam('ok')}).catch(e=>setCam(e.name));
 </script>
 </body>
 </html>
