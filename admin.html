@@ -64,14 +64,15 @@ const th7=()=>new Date(Date.now()+7*3600e3).toISOString().slice(0,10);
 async function api(p,o={}){
   const r=await fetch(p,{...o,headers:{...(o.headers||{}),Authorization:'Bearer '+tok,'content-type':'application/json'}});
   if(r.status===401){out();throw new Error('หมดสิทธิ์ กรุณาเข้าสู่ระบบใหม่')}
-  const d=await r.json();if(!r.ok)throw new Error(d.error||'ผิดพลาด');return d;
+  let d;try{d=await r.json()}catch{throw new Error('ระบบหลังบ้าน (Functions) ยังไม่ทำงาน ตรวจว่าอัปโหลดโฟลเดอร์ functions และผูก D1 แล้ว')}
+  if(!r.ok)throw new Error(d.error||'ผิดพลาด');return d;
 }
 function out(){sessionStorage.removeItem('tok');tok=null;$('app').style.display='none';$('lg').style.display='block'}
 async function login(){
   $('le').textContent='';
   try{
     const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:$('pw').value})});
-    const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'เข้าสู่ระบบไม่สำเร็จ');
+    const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d.error||'เข้าสู่ระบบไม่สำเร็จ ระบบหลังบ้าน (Functions) อาจยังไม่ทำงาน');
     tok=$('pw').value;sessionStorage.setItem('tok',tok);$('pw').value='';enter();
   }catch(e){$('le').textContent=e.message}
 }
