@@ -102,7 +102,7 @@ input.bad{border-color:var(--err)}
     <div class="who"><b id="w-nm"></b><span id="w-id"></span></div>
     <div class="row"><button class="btn p" id="again">ลงทะเบียนคนถัดไป</button></div>
   </section>
-  <div class="foot">ระบบเก็บเฉพาะค่าตัวเลขของใบหน้า ไม่เก็บภาพถ่าย</div>
+  <div class="foot">ระบบเก็บเฉพาะค่าตัวเลขของใบหน้า ไม่เก็บภาพถ่าย • เวอร์ชัน 3</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
@@ -116,13 +116,17 @@ const STEPS=[
   {t:'หันหน้าไปทางขวา',a:'→',ok:r=>r<.36}
 ];
 const OPT=()=>new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5});
+window.addEventListener('error',e=>{const b=document.getElementById('err');b.textContent='ข้อผิดพลาดในหน้าเว็บ: '+e.message;b.hidden=false});
 let got=[],step=0,hold=0,running=false,stream=null,mp=null;
 
 if(/Line\/|FBAN|FBAV|Instagram|MicroMessenger|; wv\)/i.test(navigator.userAgent)) $('inapp').hidden=false;
 
 function loadModels(){
-  if(!mp) mp=Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODELS),
-    faceapi.nets.faceLandmark68Net.loadFromUri(MODELS),faceapi.nets.faceRecognitionNet.loadFromUri(MODELS)]).catch(e=>{mp=null;throw e});
+  if(!mp) mp=(async()=>{
+    if(typeof faceapi==='undefined') throw new Error('nolib');
+    await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODELS),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODELS),faceapi.nets.faceRecognitionNet.loadFromUri(MODELS)]);
+  })().catch(e=>{mp=null;throw e});
   return mp;
 }
 loadModels().catch(()=>{});
@@ -175,7 +179,7 @@ async function startScan(){
     return fail(m||'เปิดกล้องไม่สำเร็จ: '+(e.name||e.message));
   }
   try{load('กำลังโหลดระบบตรวจจับใบหน้า…');await timeout(loadModels(),40000)}
-  catch(e){return fail('โหลดระบบตรวจจับใบหน้าไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วกดลองอีกครั้ง')}
+  catch(e){return fail(e.message==='nolib'?'โหลดไลบรารีตรวจจับใบหน้าจาก cdn.jsdelivr.net ไม่ได้ (เครือข่ายอาจบล็อกเว็บนี้) ลองใช้อินเทอร์เน็ตมือถือ':'โหลดโมเดลตรวจจับใบหน้าไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วกดลองอีกครั้ง')}
   load('');running=true;show();tick();
 }
 function show(){cue(STEPS[step].t,STEPS[step].a,'เคลื่อนไหวต่อไปจนวงกลมเป็นสีเขียว');paint()}
