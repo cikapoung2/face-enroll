@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ผู้ดูแลระบบ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f5f5;--ink:#242424;--mut:#616161;--br:#0f6cbd;--line:#d1d1d1;--err:#b10e1c}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Segoe UI","Noto Sans Thai",system-ui,sans-serif}
+.card{background:#fff;border-radius:8px;padding:28px;box-shadow:0 2px 4px rgba(0,0,0,.14),0 0 2px rgba(0,0,0,.12)}
+#lg{max-width:400px;margin:8vh auto 0;padding:0 12px}
+h1{font-size:24px;margin:0 0 6px;font-weight:600}.sub{color:var(--mut);margin:0 0 18px}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:4px}
+input{height:40px;padding:0 10px;border:1px solid var(--line);border-bottom-color:#616161;border-radius:4px;font:inherit;background:#fff}
+input:focus{outline:none;box-shadow:inset 0 -2px 0 var(--br);border-bottom-color:var(--br)}
+#pw{width:100%}
+.e{color:var(--err);font-size:13px;min-height:20px;margin-top:6px}
+.btn{height:36px;padding:0 18px;border-radius:4px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{background:#f5f5f5}.btn.p{background:var(--br);border-color:var(--br);color:#fff}.btn.p:hover{background:#115ea3}
+.btn.d{color:var(--err);height:30px;padding:0 10px}
+#app{display:none}
+.top{background:#fff;border-bottom:1px solid #e0e0e0;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.top b{font-size:16px}
+.wrap{max-width:960px;margin:16px auto;padding:0 12px}
+.tabs{display:flex;gap:4px;margin-bottom:12px}
+.tab{padding:8px 16px;border-radius:4px;cursor:pointer;font-weight:600;color:var(--mut);border:0;background:none;font:inherit;font-weight:600}
+.tab.on{background:#fff;color:var(--br);box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.bar .sp{flex:1}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--mut);font-weight:600;padding:8px 10px;border-bottom:2px solid #e0e0e0;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #ebebeb}
+.cnt{color:var(--mut);font-size:13px}
+.empty{text-align:center;color:var(--mut);padding:28px}
+</style>
+</head>
+<body>
+<div id="lg"><div class="card">
+  <h1>เข้าสู่ระบบผู้ดูแล</h1><p class="sub">สำหรับครูและเจ้าหน้าที่</p>
+  <label for="pw">รหัสผ่าน</label><input id="pw" type="password" autocomplete="current-password">
+  <div class="e" id="le"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn p" id="li">เข้าสู่ระบบ</button></div>
+</div></div>
+
+<div id="app">
+  <div class="top"><b>ผู้ดูแลระบบเช็คชื่อ</b><button class="btn" id="lo">ออกจากระบบ</button></div>
+  <div class="wrap">
+    <div class="tabs"><button class="tab on" data-t="att">เช็คชื่อรายวัน</button><button class="tab" data-t="stu">รายชื่อนักเรียน</button></div>
+    <div class="card">
+      <div class="bar" id="batt"><input type="date" id="day"><span class="cnt" id="ca"></span><span class="sp"></span><button class="btn" id="ea">ดาวน์โหลด CSV</button></div>
+      <div class="bar" id="bstu" hidden><input id="q" placeholder="ค้นหาชื่อ/รหัส/ห้อง"><span class="cnt" id="cs"></span><span class="sp"></span><button class="btn" id="es">ดาวน์โหลด CSV</button></div>
+      <div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+      <div class="empty" id="em" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let tok=sessionStorage.getItem('tok'),tab='att',rows=[],stu=[];
+const th7=()=>new Date(Date.now()+7*3600e3).toISOString().slice(0,10);
+async function api(p,o={}){
+  const r=await fetch(p,{...o,headers:{...(o.headers||{}),Authorization:'Bearer '+tok,'content-type':'application/json'}});
+  if(r.status===401){out();throw new Error('หมดสิทธิ์ กรุณาเข้าสู่ระบบใหม่')}
+  const d=await r.json();if(!r.ok)throw new Error(d.error||'ผิดพลาด');return d;
+}
+function out(){sessionStorage.removeItem('tok');tok=null;$('app').style.display='none';$('lg').style.display='block'}
+async function login(){
+  $('le').textContent='';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:$('pw').value})});
+    const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'เข้าสู่ระบบไม่สำเร็จ');
+    tok=$('pw').value;sessionStorage.setItem('tok',tok);$('pw').value='';enter();
+  }catch(e){$('le').textContent=e.message}
+}
+$('li').onclick=login;$('pw').onkeydown=e=>{if(e.key==='Enter')login()};$('lo').onclick=out;
+function enter(){$('lg').style.display='none';$('app').style.display='block';$('day').value=$('day').value||th7();show()}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));show()});
+$('day').onchange=show;$('q').oninput=draw;
+async function show(){
+  $('batt').hidden=tab!=='att';$('bstu').hidden=tab!=='stu';
+  try{if(tab==='att')rows=await api('/api/attendance?day='+$('day').value);else stu=await api('/api/students');draw()}
+  catch(e){$('tb').innerHTML='';$('em').hidden=false;$('em').textContent=e.message}
+}
+function cell(t){const c=document.createElement('td');c.textContent=t==null?'':t;return c}
+function draw(){
+  const hd=$('th'),tb=$('tb');tb.innerHTML='';
+  const tm=s=>new Date(s).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  let data;
+  if(tab==='att'){hd.innerHTML='<tr><th>#</th><th>เวลา</th><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ห้อง</th></tr>';data=rows;$('ca').textContent='เช็คชื่อแล้ว '+data.length+' คน';
+    data.forEach((r,i)=>{const t=document.createElement('tr');[i+1,tm(r.checked_at)+' น.',r.student_id,r.name||'(ถูกลบแล้ว)',r.classroom].forEach(x=>t.append(cell(x)));tb.append(t)})}
+  else{hd.innerHTML='<tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ห้อง</th><th>ลงทะเบียนเมื่อ</th><th></th></tr>';
+    const k=$('q').value.trim().toLowerCase();data=stu.filter(s=>!k||[s.student_id,s.name,s.classroom].join(' ').toLowerCase().includes(k));$('cs').textContent=data.length+' / '+stu.length+' คน';
+    data.forEach(s=>{const t=document.createElement('tr');[s.student_id,s.name,s.classroom,new Date(s.created_at+'Z').toLocaleDateString('th-TH')].forEach(x=>t.append(cell(x)));
+      const c=document.createElement('td'),b=document.createElement('button');b.className='btn d';b.textContent='ลบ';
+      b.onclick=async()=>{if(confirm('ลบข้อมูลใบหน้าและประวัติเช็คชื่อของ '+s.name+' ?')){try{await api('/api/students?id='+encodeURIComponent(s.student_id),{method:'DELETE'});show()}catch(e){alert(e.message)}}};
+      c.append(b);t.append(c);tb.append(t)})}
+  $('em').hidden=data.length>0;$('em').textContent=tab==='att'?'ยังไม่มีการเช็คชื่อในวันนี้':'ไม่พบข้อมูล';
+}
+function csv(name,head,list){
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const t='\ufeff'+[head,...list].map(r=>r.map(q).join(',')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=name;a.click();
+}
+$('ea').onclick=()=>csv('เช็คชื่อ-'+$('day').value+'.csv',['เวลา','รหัส','ชื่อ-นามสกุล','ห้อง'],rows.map(r=>[new Date(r.checked_at).toLocaleTimeString('th-TH'),r.student_id,r.name,r.classroom]));
+$('es').onclick=()=>csv('รายชื่อนักเรียน.csv',['รหัส','ชื่อ-นามสกุล','ห้อง'],stu.map(s=>[s.student_id,s.name,s.classroom]));
+if(tok)enter();
+</script>
+</body>
+</html>

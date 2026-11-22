@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เช็คชื่อด้วยใบหน้า</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f5f5;--ink:#242424;--mut:#616161;--br:#0f6cbd;--ok:#107c10;--err:#b10e1c}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:24px 12px;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Segoe UI","Noto Sans Thai",system-ui,sans-serif}
+.card{width:100%;max-width:440px;background:#fff;border-radius:8px;padding:28px;box-shadow:0 2px 4px rgba(0,0,0,.14),0 0 2px rgba(0,0,0,.12)}
+@media(max-width:480px){body{padding:0;background:#fff}.card{box-shadow:none;padding:22px 18px}}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-weight:600;color:var(--mut)}
+.brand i{width:28px;height:28px;border-radius:6px;background:var(--br);display:grid;place-items:center;color:#fff;font-style:normal}
+h1{font-size:24px;margin:0 0 4px;font-weight:600}.sub{color:var(--mut);margin:0 0 14px}
+.stage{position:relative;width:min(100%,300px);aspect-ratio:1;margin:4px auto 10px}
+.stage video{position:absolute;inset:7%;width:86%;height:86%;border-radius:50%;object-fit:cover;transform:scaleX(-1);background:#1f1f1f}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.stage circle{fill:none;stroke-width:3}.trk{stroke:#e0e0e0}
+.prg{stroke:var(--br);stroke-linecap:round;stroke-dasharray:301.6;stroke-dashoffset:301.6;transition:stroke-dashoffset .2s}
+.prg.ok{stroke:var(--ok)}.prg.bad{stroke:var(--err)}
+.load{position:absolute;inset:7%;border-radius:50%;background:rgba(31,31,31,.88);color:#fff;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;text-align:center;font-size:13px;padding:24px}
+.spin{width:26px;height:26px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.cue{text-align:center;min-height:84px}
+.cue .a{font-size:26px;line-height:1.1;color:var(--br)}.cue .t{font-size:18px;font-weight:600}.cue .h{font-size:13px;color:var(--mut);min-height:20px}
+.res{display:none;text-align:center;padding:8px 0}
+.res.on{display:block}.res .b{font-size:20px;font-weight:600}.res.ok .b{color:var(--ok)}.res.bad .b{color:var(--err)}
+.res .n{font-size:22px;font-weight:600;margin-top:6px}
+.btn{height:36px;padding:0 20px;border-radius:4px;border:1px solid #d1d1d1;background:#fff;font:inherit;font-weight:600;cursor:pointer;margin-top:12px}
+.foot{font-size:12px;color:var(--mut);margin-top:16px;padding-top:12px;border-top:1px solid #ebebeb;display:flex;justify-content:space-between}
+a{color:var(--br)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand"><i>✓</i>ระบบเช็คชื่อด้วยใบหน้า</div>
+  <h1>เช็คชื่อเข้าเรียน</h1>
+  <p class="sub">มองกล้อง แล้วทำตามคำแนะนำ</p>
+  <div class="stage">
+    <video id="v" autoplay playsinline muted></video>
+    <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="48"/><circle class="prg" id="prg" cx="50" cy="50" r="48"/></svg>
+    <div class="load" id="load"><div class="spin"></div><span id="ltxt">กำลังเตรียมกล้อง…</span></div>
+  </div>
+  <div class="cue" id="cue" aria-live="polite"><div class="a" id="arrow"></div><div class="t" id="step"></div><div class="h" id="hint"></div></div>
+  <div class="res" id="res" aria-live="assertive"><div class="b" id="rb"></div><div class="n" id="rn"></div><div class="sub" id="rs"></div><button class="btn" id="nx">คนถัดไป</button></div>
+  <div class="foot"><span>เวอร์ชัน 1</span><a href="/">ลงทะเบียนใบหน้า</a></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+<script>
+const MODELS='https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/';
+const $=id=>document.getElementById(id);
+const DIR=[{t:'มองตรงไปที่กล้อง',a:'●',ok:r=>r>.42&&r<.58},{t:'หันหน้าไปทางซ้าย',a:'←',ok:r=>r>.64},{t:'หันหน้าไปทางขวา',a:'→',ok:r=>r<.36}];
+const OPT=()=>new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5});
+let stream=null,mp=null,running=false,phase=0,turn=1,hold=0,desc=null,timer=null;
+
+function loadModels(){
+  if(!mp) mp=(async()=>{if(typeof faceapi==='undefined')throw new Error('nolib');
+    await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODELS),faceapi.nets.faceLandmark68Net.loadFromUri(MODELS),faceapi.nets.faceRecognitionNet.loadFromUri(MODELS)])})().catch(e=>{mp=null;throw e});
+  return mp;
+}
+const load=t=>{$('load').style.display=t?'flex':'none';if(t)$('ltxt').textContent=t};
+const cue=(t,a,h)=>{$('step').textContent=t;$('arrow').textContent=a;$('hint').textContent=h||''};
+const ring=(p,c)=>{$('prg').style.strokeDashoffset=301.6*(1-p);$('prg').className='prg'+(c?' '+c:'')};
+function result(kind,b,n,s){
+  running=false;$('cue').style.display='none';$('res').className='res on '+kind;
+  $('rb').textContent=b;$('rn').textContent=n||'';$('rs').textContent=s||'';
+  ring(1,kind);clearTimeout(timer);timer=setTimeout(start,4500);
+}
+$('nx').onclick=()=>{clearTimeout(timer);start()};
+
+async function start(){
+  clearTimeout(timer);$('res').className='res';$('cue').style.display='';phase=0;hold=0;desc=null;ring(0);cue('','','');
+  turn=Math.random()<.5?1:2;
+  if(!window.isSecureContext||!navigator.mediaDevices) return result('bad','เปิดกล้องไม่ได้','','เปิดด้วย Chrome/Safari ผ่านลิงก์ https');
+  try{
+    if(!stream||!stream.active){load('กำลังขออนุญาตใช้กล้อง… กด “อนุญาต”');stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false})}
+    $('v').srcObject=stream;await $('v').play();
+    load('กำลังโหลดระบบตรวจจับใบหน้า…');await loadModels();
+  }catch(e){stream=null;load('');return result('bad',e.name==='NotAllowedError'?'ไม่ได้รับอนุญาตให้ใช้กล้อง':'เปิดกล้องหรือโหลดระบบไม่สำเร็จ','',e.message==='nolib'?'โหลดไลบรารีไม่ได้ (เครือข่ายอาจบล็อก cdn.jsdelivr.net)':(e.name||e.message))}
+  load('');running=true;cue(DIR[0].t,DIR[0].a,'');tick();
+}
+async function tick(){
+  if(!running) return;const v=$('v');let good=false;
+  try{
+    const f=await faceapi.detectAllFaces(v,OPT()).withFaceLandmarks();
+    if(f.length!==1){hold=0;$('hint').textContent=f.length?'พบหลายใบหน้า ให้เหลือคนเดียว':'ไม่พบใบหน้า'}
+    else if(f[0].detection.box.width/v.videoWidth<.2){hold=0;$('hint').textContent='เข้าใกล้กล้องอีกนิด'}
+    else{
+      const p=f[0].landmarks.positions,r=(p[30].x-p[0].x)/(p[16].x-p[0].x);
+      good=DIR[phase===0?0:turn].ok(r);hold=good?hold+1:0;$('hint').textContent=good?'ค้างไว้…':'ทำตามคำแนะนำ';
+    }
+    ring((phase+(good?hold/3:0))/2,good?'ok':'');
+    if(hold>=3){
+      if(phase===0){
+        const d=await faceapi.detectSingleFace(v,OPT()).withFaceLandmarks().withFaceDescriptor();
+        if(d){desc=Array.from(d.descriptor);phase=1;hold=0;cue(DIR[turn].t,DIR[turn].a,'เพื่อยืนยันว่าเป็นตัวจริง')}
+      }else{running=false;return send()}
+    }
+  }catch(e){return result('bad','เกิดข้อผิดพลาด','',e.message)}
+  setTimeout(tick,120);
+}
+async function send(){
+  cue('กำลังตรวจสอบ…','…','');
+  try{
+    const r=await fetch('/api/checkin',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({descriptor:desc})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||'เซิร์ฟเวอร์ผิดพลาด (ตรวจว่าสร้างตาราง attendance แล้ว)');
+    if(!d.match) return result('bad','ไม่พบข้อมูลใบหน้า','','ลองใหม่ หรือลงทะเบียนใบหน้าก่อน');
+    const t=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    result('ok',d.already?'เช็คชื่อไว้แล้ววันนี้':'เช็คชื่อสำเร็จ',d.name,(d.classroom?d.classroom+' • ':'')+'รหัส '+d.studentId+' • '+t+' น.');
+  }catch(e){result('bad','บันทึกไม่สำเร็จ','',e.message)}
+}
+start();
+</script>
+</body>
+</html>
